@@ -15,7 +15,11 @@ function Planet() {
 
 useGLTF.preload(ASSETS.models.planet);
 
-export default function EarthCanvas() {
+export default function EarthCanvas({
+  interactive = true,
+}: {
+  interactive?: boolean;
+}) {
   return (
     <div className="w-full h-full min-h-[320px]">
       <Canvas
@@ -34,7 +38,7 @@ export default function EarthCanvas() {
             autoRotateSpeed={0.8}
             enableZoom={false}
             enablePan={false}
-            enableRotate
+            enableRotate={interactive}
             rotateSpeed={0.6}
             makeDefault
             maxPolarAngle={Math.PI / 2}

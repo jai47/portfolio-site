@@ -11,7 +11,6 @@ import {
 import { styles, experiences } from "@/constants";
 
 const SHRINK_PER_LEVEL = 0.055;
-const FADE_PER_LEVEL = 0.08;
 
 function stickyTopFor(index: number, isMobile: boolean) {
   const base = isMobile ? 72 : 100;
@@ -39,11 +38,6 @@ function ExperienceCard({
   });
 
   const enterScale = useTransform(scrollYProgress, [0, 1], [0.97, 1]);
-  const enterOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.5, 1],
-    [0.55, 0.9, 1]
-  );
   const enterY = useTransform(scrollYProgress, [0, 1], [28, 0]);
 
   useEffect(() => {
@@ -83,23 +77,13 @@ function ExperienceCard({
   }, [depth, index]);
 
   const stackScale = useTransform(depth, (d) => 1 - d * SHRINK_PER_LEVEL);
-  const stackOpacity = useTransform(depth, (d) => 1 - d * FADE_PER_LEVEL);
 
   const combinedScale = useTransform(
     [enterScale, stackScale],
     ([enter, stack]) => (enter as number) * (stack as number)
   );
-  const combinedOpacity = useTransform(
-    [enterOpacity, stackOpacity],
-    ([enter, stack]) => (enter as number) * (stack as number)
-  );
 
   const scale = useSpring(combinedScale, {
-    stiffness: 140,
-    damping: 28,
-    mass: 0.3,
-  });
-  const opacity = useSpring(combinedOpacity, {
     stiffness: 140,
     damping: 28,
     mass: 0.3,
@@ -117,7 +101,7 @@ function ExperienceCard({
       }}
     >
       <motion.article
-        style={{ scale, opacity, y }}
+        style={{ scale, y }}
         className="relative w-full overflow-hidden rounded-2xl border border-[#915EFF]/35 bg-[#151030] p-4 sm:p-6 md:p-8 shadow-[0_28px_90px_rgba(0,0,0,0.55)] origin-top"
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#915EFF] to-transparent" />

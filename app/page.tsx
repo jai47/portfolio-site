@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
@@ -15,6 +16,26 @@ const StarsCanvas = dynamic(
   { ssr: false }
 );
 
+function DesktopAbout() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  if (!isDesktop) return null;
+
+  return (
+    <SectionWrapper idName="about">
+      <About />
+    </SectionWrapper>
+  );
+}
+
 export default function Home() {
   return (
     <div className="relative z-0 bg-primary">
@@ -23,9 +44,8 @@ export default function Home() {
         <Hero />
       </div>
 
-      <SectionWrapper idName="about">
-        <About />
-      </SectionWrapper>
+      {/* Desktop-only About; mobile About lives under the hero CV button */}
+      <DesktopAbout />
 
       {/* Own section (no transform ancestor) so sticky card stacking works */}
       <section

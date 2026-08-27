@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import { styles } from "@/constants";
+import About from "@/components/About";
 
 const EarthCanvas = dynamic(() => import("@/components/canvas/Earth"), {
   ssr: false,
@@ -92,70 +98,141 @@ function DownloadCvButton() {
 }
 
 export default function Hero() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth < 768);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  const smooth = useSpring(scrollYProgress, {
+    stiffness: 90,
+    damping: 28,
+    mass: 0.35,
+  });
+
+  // Scroll slide only applied on mobile via style merge below
+  const slideY = useTransform(smooth, [0, 1], [0, 240]);
+  const slideX = useTransform(smooth, [0, 1], [0, 80]);
+  const slideRotate = useTransform(smooth, [0, 1], [0, 14]);
+  const slideOpacity = useTransform(smooth, [0, 0.6, 1], [1, 0.7, 0.2]);
+
   return (
-    <section className="relative w-full min-h-[100dvh] mx-auto overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="relative w-full md:min-h-[100dvh] mx-auto overflow-hidden"
+    >
+      {/*
+        Mobile: top-right decorative globe + scroll slide
+        Desktop: large interactive globe on the right (unchanged)
+      */}
+      <motion.div
+        initial={{ opacity: 0, y: isMobile ? -12 : 40, x: isMobile ? 36 : 0 }}
+        animate={{ opacity: 1, y: 0, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className={
+          isMobile
+            ? "pointer-events-none absolute z-0 top-[4.25rem] right-[-22%] w-[72vw] max-w-[300px] aspect-square"
+            : "pointer-events-auto absolute right-0 top-[40px] z-[5] h-[720px] w-[58%] xl:w-[54%] cursor-grab active:cursor-grabbing"
+        }
+        aria-hidden={isMobile}
+      >
+        {/* Inner layer: scroll slide on mobile only (avoids fighting entrance animate) */}
+        <motion.div
+          className="h-full w-full"
+          style={
+            isMobile
+              ? {
+                  x: slideX,
+                  y: slideY,
+                  rotate: slideRotate,
+                  opacity: slideOpacity,
+                }
+              : undefined
+          }
+        >
+          <EarthCanvas interactive={!isMobile} />
+        </motion.div>
+      </motion.div>
+
       <div
-        className={`relative z-10 max-w-7xl mx-auto ${styles.paddingX} pt-28 sm:pt-32 pb-8 md:absolute md:inset-0 md:top-[120px] md:pt-0 md:pb-0 flex flex-row items-start gap-4 sm:gap-5 pointer-events-none`}
+        className={`relative z-10 max-w-7xl mx-auto ${styles.paddingX} pt-28 pb-10
+          md:absolute md:inset-0 md:top-[120px] md:pt-0 md:pb-0
+          flex flex-row items-start gap-4 sm:gap-5 pointer-events-none`}
       >
         <div className="flex flex-col justify-center items-center mt-3 sm:mt-5">
           <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#915EFF]" />
           <div className="w-1 h-32 sm:h-40 md:h-80 violet-gradient" />
         </div>
 
-        <div className="pointer-events-auto max-w-[min(100%,780px)]">
-          <h1
-            className="mt-2 text-white tracking-tight"
-            style={{
-              fontSize: "clamp(2.25rem, 8vw, 80px)",
-              fontWeight: 800,
-              lineHeight: 1.05,
-            }}
-          >
-            Hi, I&apos;m{" "}
-            <span className="text-[#915EFF]">Jai</span>
-          </h1>
-          <p
-            className="mt-3 sm:mt-5 text-white-100"
-            style={{
-              fontSize: "clamp(1.125rem, 3.5vw, 35px)",
-              fontWeight: 600,
-              lineHeight: 1.35,
-            }}
-          >
-            I am a developer
-            <br />
-            <span className="inline-block mt-1 sm:mt-2 min-h-[1.2em]">
-              <Typewriter />
-            </span>
-          </p>
-          <DownloadCvButton />
+        <div className="pointer-events-auto w-full max-w-[min(100%,780px)]">
+          {/* Leave room for the top-right globe on mobile */}
+          <div className="relative z-10 pr-[28%] xs:pr-[26%] md:pr-0">
+            <h1
+              className="mt-2 text-white tracking-tight"
+              style={{
+                fontSize: "clamp(2.25rem, 8vw, 80px)",
+                fontWeight: 800,
+                lineHeight: 1.05,
+              }}
+            >
+              Hi, I&apos;m{" "}
+              <span className="text-[#915EFF]">Jai</span>
+            </h1>
+            <p
+              className="mt-3 sm:mt-5 text-white-100"
+              style={{
+                fontSize: "clamp(1.125rem, 3.5vw, 35px)",
+                fontWeight: 600,
+                lineHeight: 1.35,
+              }}
+            >
+              I am a developer
+              <br />
+              <span className="inline-block mt-1 sm:mt-2 min-h-[1.2em]">
+                <Typewriter />
+              </span>
+            </p>
+            <DownloadCvButton />
+          </div>
+
+          {isMobile && (
+            <motion.div
+              id="about"
+              className="mt-12 scroll-mt-24 relative z-10"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              <About />
+            </motion.div>
+          )}
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="relative z-[5] w-full h-[280px] xs:h-[320px] sm:h-[420px] md:absolute md:right-0 md:top-[40px] md:h-[720px] md:w-[58%] xl:w-[54%] cursor-grab active:cursor-grabbing"
-      >
-        <EarthCanvas />
-      </motion.div>
-
-      <div className="absolute bottom-6 sm:bottom-10 w-full flex justify-center items-center z-10 pointer-events-none">
+      <div className="absolute bottom-6 sm:bottom-10 w-full hidden md:flex justify-center items-center z-10 pointer-events-none">
         <a
           href="#about"
           aria-label="Scroll to about"
           className="pointer-events-auto"
         >
-          <div className="w-[30px] h-[54px] sm:w-[35px] sm:h-[64px] rounded-3xl border-4 border-secondary flex justify-center items-start p-2">
+          <div className="w-[35px] h-[64px] rounded-3xl border-4 border-secondary flex justify-center items-start p-2">
             <motion.div
-              animate={{ y: [0, 20, 0] }}
+              animate={{ y: [0, 24, 0] }}
               transition={{
                 duration: 1.5,
                 repeat: Infinity,
                 repeatType: "loop",
               }}
-              className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-secondary mb-1"
+              className="w-3 h-3 rounded-full bg-secondary mb-1"
             />
           </div>
         </a>
