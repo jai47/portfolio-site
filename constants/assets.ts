@@ -36,6 +36,12 @@ export const ASSETS = {
     web: "/assets/projects/web.png",
     mobile: "/assets/projects/mobile.png",
     creator: "/assets/projects/creator.png",
+    bikebuddies: "/assets/projects/screenshots/bikebuddies.jpg",
+    boxFactory: "/assets/projects/screenshots/box-factory.jpg",
+    aakaar: "/assets/projects/screenshots/aakaar.jpg",
+    hrms: "/assets/projects/screenshots/hrms.jpg",
+    xcubit: "/assets/projects/screenshots/xcubit.jpg",
+    vastav: "/assets/projects/screenshots/vastav.jpg",
   },
   models: {
     planet: "/models/planet/scene.gltf",

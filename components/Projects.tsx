@@ -77,7 +77,10 @@ export default function Projects() {
       <motion.div layout className="mt-10 flex flex-wrap gap-7">
         <AnimatePresence mode="popLayout">
           {filtered.map((project, index) => {
-            const href = project.live_link ?? project.source_code_link;
+            const href =
+              ("live_link" in project && project.live_link) ||
+              ("source_code_link" in project && project.source_code_link) ||
+              undefined;
             return (
               <motion.article
                 layout
@@ -91,11 +94,12 @@ export default function Projects() {
                   border border-white/5 hover:border-[#915EFF]/35 transition-colors duration-300"
               >
                 <div
-                  className="relative w-full h-[230px] cursor-pointer group overflow-hidden"
-                  onClick={() => window.open(href, "_blank")}
-                  role="link"
-                  tabIndex={0}
+                  className={`relative w-full h-[230px] group overflow-hidden ${href ? "cursor-pointer" : ""}`}
+                  onClick={() => href && window.open(href, "_blank")}
+                  role={href ? "link" : undefined}
+                  tabIndex={href ? 0 : undefined}
                   onKeyDown={(e) => {
+                    if (!href) return;
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       window.open(href, "_blank");
@@ -106,10 +110,11 @@ export default function Projects() {
                     src={project.image}
                     alt={project.name}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                    sizes="(max-width: 640px) 100vw, 360px"
+                    className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-80" />
-                  {project.live_link && (
+                  {"live_link" in project && project.live_link && (
                     <span className="absolute bottom-3 left-3 text-[12px] font-medium text-white/90 tracking-wide">
                       View live →
                     </span>
