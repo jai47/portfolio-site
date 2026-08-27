@@ -1,5 +1,4 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { getDb } from "./mongodb";
 
 export interface ContactMessage {
   id: string;
@@ -10,33 +9,40 @@ export interface ContactMessage {
   read: boolean;
 }
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
+const COLLECTION = "messages";
 
-async function ensureDataDir() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
+interface MessageDoc {
+  _id: string;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: Date;
+  read: boolean;
 }
 
-async function readMessagesFile(): Promise<ContactMessage[]> {
-  await ensureDataDir();
-  try {
-    const raw = await fs.readFile(MESSAGES_FILE, "utf-8");
-    return JSON.parse(raw) as ContactMessage[];
-  } catch {
-    return [];
-  }
+function toMessage(doc: MessageDoc): ContactMessage {
+  return {
+    id: doc._id,
+    name: doc.name,
+    email: doc.email,
+    message: doc.message,
+    createdAt:
+      doc.createdAt instanceof Date
+        ? doc.createdAt.toISOString()
+        : String(doc.createdAt),
+    read: doc.read,
+  };
 }
 
-async function writeMessagesFile(messages: ContactMessage[]) {
-  await ensureDataDir();
-  await fs.writeFile(MESSAGES_FILE, JSON.stringify(messages, null, 2), "utf-8");
+async function messagesCollection() {
+  const db = await getDb();
+  return db.collection<MessageDoc>(COLLECTION);
 }
 
 export async function getMessages(): Promise<ContactMessage[]> {
-  const messages = await readMessagesFile();
-  return messages.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  const col = await messagesCollection();
+  const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
+  return docs.map(toMessage);
 }
 
 export async function addMessage(data: {
@@ -44,44 +50,45 @@ export async function addMessage(data: {
   email: string;
   message: string;
 }): Promise<ContactMessage> {
-  const messages = await readMessagesFile();
-  const entry: ContactMessage = {
-    id: crypto.randomUUID(),
+  const col = await messagesCollection();
+  const id = crypto.randomUUID();
+  const createdAt = new Date();
+  const doc: MessageDoc = {
+    _id: id,
     name: data.name.trim(),
     email: data.email.trim(),
     message: data.message.trim(),
-    createdAt: new Date().toISOString(),
+    createdAt,
     read: false,
   };
-  messages.unshift(entry);
-  await writeMessagesFile(messages);
-  return entry;
+  await col.insertOne(doc);
+  return toMessage(doc);
 }
 
 export async function updateMessage(
   id: string,
   updates: Partial<Pick<ContactMessage, "read">>
 ): Promise<ContactMessage | null> {
-  const messages = await readMessagesFile();
-  const index = messages.findIndex((m) => m.id === id);
-  if (index === -1) return null;
-  messages[index] = { ...messages[index], ...updates };
-  await writeMessagesFile(messages);
-  return messages[index];
+  const col = await messagesCollection();
+  const result = await col.findOneAndUpdate(
+    { _id: id },
+    { $set: { ...updates } },
+    { returnDocument: "after" }
+  );
+  return result ? toMessage(result) : null;
 }
 
 export async function deleteMessage(id: string): Promise<boolean> {
-  const messages = await readMessagesFile();
-  const filtered = messages.filter((m) => m.id !== id);
-  if (filtered.length === messages.length) return false;
-  await writeMessagesFile(filtered);
-  return true;
+  const col = await messagesCollection();
+  const result = await col.deleteOne({ _id: id });
+  return result.deletedCount === 1;
 }
 
 export async function getMessageStats() {
-  const messages = await readMessagesFile();
-  return {
-    total: messages.length,
-    unread: messages.filter((m) => !m.read).length,
-  };
+  const col = await messagesCollection();
+  const [total, unread] = await Promise.all([
+    col.countDocuments(),
+    col.countDocuments({ read: false }),
+  ]);
+  return { total, unread };
 }
