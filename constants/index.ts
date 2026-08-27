@@ -257,6 +257,6 @@ export const siteConfig = {
   linkedin: "https://linkedin.com/in/jai47",
   github: "https://github.com/jai47",
   about:
-    "I'm a skilled full-stack software developer with experience in TypeScript and JavaScript, and expertise in frameworks like React, Next.js, Node.js, and Three.js. I build efficient, scalable, and user-friendly solutions — from event platforms and CMS systems to ML-powered applications. Currently working at Cogneet while freelancing and contributing to open-source projects.",
+    "I'm a skilled full-stack software developer with experience in TypeScript and JavaScript, and expertise in frameworks like React, Next.js, and Node.js. I build efficient, scalable, and user-friendly solutions — from event platforms and CMS systems to ML-powered applications. Currently working at Cogneet as a Full Stack Software Engineer.",
   heroTagline: "Frontend · Backend · Fullstack",
 };
