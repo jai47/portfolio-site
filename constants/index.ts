@@ -11,9 +11,9 @@ export const styles = {
   heroSubText:
     "text-[#dfd9ff] font-semibold text-[35px] leading-[1.35]",
   sectionHeadText:
-    "text-white font-black md:text-[60px] sm:text-[50px] xs:text-[40px] text-[30px]",
+    "text-white font-black text-[28px] sm:text-[40px] md:text-[50px] lg:text-[60px]",
   sectionSubText:
-    "sm:text-[18px] text-[14px] text-secondary uppercase tracking-wider",
+    "text-[12px] sm:text-[14px] md:text-[18px] text-secondary uppercase tracking-wider",
 };
 
 export const navLinks = [
