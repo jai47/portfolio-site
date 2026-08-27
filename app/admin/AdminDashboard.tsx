@@ -14,6 +14,9 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats>({ total: 0, unread: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [resumeUrl, setResumeUrl] = useState("");
+  const [resumeStatus, setResumeStatus] = useState("");
+  const [savingResume, setSavingResume] = useState(false);
   const router = useRouter();
 
   const fetchMessages = useCallback(async () => {
@@ -38,9 +41,21 @@ export default function AdminDashboard() {
     }
   }, [router]);
 
+  const fetchResume = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/resume");
+      if (!res.ok) return;
+      const data = await res.json();
+      setResumeUrl(data.resumeUrl ?? "");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   useEffect(() => {
     fetchMessages();
-  }, [fetchMessages]);
+    fetchResume();
+  }, [fetchMessages, fetchResume]);
 
   const markAsRead = async (id: string, read: boolean) => {
     const res = await fetch("/api/admin/messages", {
@@ -63,6 +78,30 @@ export default function AdminDashboard() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin/login");
     router.refresh();
+  };
+
+  const saveResume = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingResume(true);
+    setResumeStatus("");
+    try {
+      const res = await fetch("/api/admin/resume", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setResumeStatus(data.error || "Failed to save");
+        return;
+      }
+      setResumeUrl(data.resumeUrl ?? "");
+      setResumeStatus("Resume link saved.");
+    } catch {
+      setResumeStatus("Failed to save resume link");
+    } finally {
+      setSavingResume(false);
+    }
   };
 
   return (
@@ -98,6 +137,33 @@ export default function AdminDashboard() {
             <p className="text-secondary text-sm">Unread</p>
             <p className="text-[#915EFF] text-4xl font-bold mt-2">{stats.unread}</p>
           </div>
+        </div>
+
+        <div className="bg-black-100 p-6 rounded-2xl mb-10">
+          <h2 className="text-white text-xl font-bold">Resume / CV</h2>
+          <p className="text-secondary text-sm mt-1">
+            Paste a public link (Google Drive, Dropbox, or a direct PDF URL). It
+            appears as a Download CV button on the homepage.
+          </p>
+          <form onSubmit={saveResume} className="mt-4 flex flex-col sm:flex-row gap-3">
+            <input
+              type="url"
+              value={resumeUrl}
+              onChange={(e) => setResumeUrl(e.target.value)}
+              placeholder="https://..."
+              className="flex-1 bg-tertiary rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#915EFF]"
+            />
+            <button
+              type="submit"
+              disabled={savingResume}
+              className="bg-[#915EFF] px-5 py-3 rounded-xl text-white font-medium hover:opacity-90 transition disabled:opacity-60"
+            >
+              {savingResume ? "Saving..." : "Save link"}
+            </button>
+          </form>
+          {resumeStatus && (
+            <p className="text-secondary text-sm mt-3">{resumeStatus}</p>
+          )}
         </div>
 
         {loading && <p className="text-secondary">Loading messages...</p>}

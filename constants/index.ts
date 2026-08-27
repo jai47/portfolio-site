@@ -7,9 +7,9 @@ export const styles = {
   paddingY: "sm:py-16 py-6",
   padding: "sm:px-16 px-6 sm:py-16 py-10",
   heroHeadText:
-    "font-black text-white lg:text-[80px] sm:text-[60px] xs:text-[50px] text-[40px] lg:leading-[98px] mt-2",
+    "font-extrabold text-white text-[80px] leading-[1.05] tracking-tight mt-2",
   heroSubText:
-    "text-[#dfd9ff] font-medium lg:text-[30px] sm:text-[26px] xs:text-[20px] text-[16px] lg:leading-[40px]",
+    "text-[#dfd9ff] font-semibold text-[35px] leading-[1.35]",
   sectionHeadText:
     "text-white font-black md:text-[60px] sm:text-[50px] xs:text-[40px] text-[30px]",
   sectionSubText:
@@ -18,27 +18,34 @@ export const styles = {
 
 export const navLinks = [
   { id: "about", title: "About" },
-  { id: "work", title: "Work" },
   { id: "experience", title: "Experience" },
   { id: "tech", title: "Tech" },
   { id: "contact", title: "Contact" },
 ];
 
 export const technologies = [
-  { name: "HTML 5", icon: ASSETS.tech.html },
-  { name: "CSS 3", icon: ASSETS.tech.css },
   { name: "JavaScript", icon: ASSETS.tech.javascript },
   { name: "TypeScript", icon: ASSETS.tech.typescript },
-  { name: "React JS", icon: ASSETS.tech.react },
+  { name: "Python", icon: ASSETS.tech.python },
+  { name: "C#", icon: ASSETS.tech.csharp },
+  { name: "C++", icon: ASSETS.tech.cplusplus },
+  { name: "React.js", icon: ASSETS.tech.react },
   { name: "Next.js", icon: ASSETS.tech.nextjs },
-  { name: "Redux Toolkit", icon: ASSETS.tech.redux },
   { name: "Tailwind CSS", icon: ASSETS.tech.tailwind },
-  { name: "Node JS", icon: ASSETS.tech.nodejs },
+  { name: "Redux Toolkit", icon: ASSETS.tech.redux },
+  { name: "Framer Motion", icon: ASSETS.tech.framermotion },
+  { name: "Node.js", icon: ASSETS.tech.nodejs },
+  { name: "NestJS", icon: ASSETS.tech.nestjs },
+  { name: "Express.js", icon: ASSETS.tech.express },
+  { name: "FastAPI", icon: ASSETS.tech.fastapi },
+  { name: "PostgreSQL", icon: ASSETS.tech.postgresql },
   { name: "MongoDB", icon: ASSETS.tech.mongodb },
-  { name: "Three JS", icon: ASSETS.tech.threejs },
-  { name: "git", icon: ASSETS.tech.git },
-  { name: "figma", icon: ASSETS.tech.figma },
-  { name: "docker", icon: ASSETS.tech.docker },
+  { name: "Redis", icon: ASSETS.tech.redis },
+  { name: "Prisma", icon: ASSETS.tech.prisma },
+  { name: "Docker", icon: ASSETS.tech.docker },
+  { name: "AWS", icon: ASSETS.tech.aws },
+  { name: "GraphQL", icon: ASSETS.tech.graphql },
+  { name: "Git", icon: ASSETS.tech.git },
 ];
 
 export const experiences = [

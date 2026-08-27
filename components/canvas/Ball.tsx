@@ -8,6 +8,8 @@ import CanvasLoader from "./Loader";
 
 function Ball({ imgUrl }: { imgUrl: string }) {
   const [decal] = useTexture([imgUrl]);
+  decal.colorSpace = THREE.SRGBColorSpace;
+  decal.anisotropy = 16;
 
   return (
     <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>

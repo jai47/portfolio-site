@@ -5,10 +5,10 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Tech from "@/components/Tech";
-import Projects from "@/components/Projects";
 import Experience from "@/components/Experience";
 import Contact from "@/components/Contact";
 import SectionWrapper from "@/components/SectionWrapper";
+import { styles } from "@/constants";
 
 const StarsCanvas = dynamic(
   () => import("@/components/canvas/Ball").then((mod) => mod.StarsCanvas),
@@ -27,22 +27,28 @@ export default function Home() {
         <About />
       </SectionWrapper>
 
-      <SectionWrapper idName="work">
-        <Projects />
-      </SectionWrapper>
-
-      <SectionWrapper idName="experience">
+      {/* Own section (no transform ancestor) so sticky card stacking works */}
+      <section
+        className={`${styles.paddingX} pt-10 sm:pt-16 pb-4 max-w-7xl mx-auto relative z-0`}
+      >
+        <span className="hash-span" id="experience">
+          &nbsp;
+        </span>
         <Experience />
-      </SectionWrapper>
+      </section>
 
-      <SectionWrapper idName="tech">
-        <Tech />
-      </SectionWrapper>
+      {/* Own section (no transform ancestor) so sticky horizontal scroll works */}
+      <Tech />
 
       <div className="relative z-0">
-        <SectionWrapper idName="contact">
+        <section
+          className={`${styles.paddingX} pt-8 sm:pt-12 pb-16 sm:pb-20 max-w-7xl mx-auto relative z-0`}
+        >
+          <span className="hash-span" id="contact">
+            &nbsp;
+          </span>
           <Contact />
-        </SectionWrapper>
+        </section>
         <StarsCanvas />
       </div>
     </div>
