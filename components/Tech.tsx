@@ -16,14 +16,28 @@ function dockMagnitude(distance: number, radius: number) {
   return t * t * (3 - 2 * t);
 }
 
+/** Arc from bottom-left → rising through center → exiting top-right */
+function pathOffsetY(screenX: number, width: number, height: number) {
+  const t = Math.min(1, Math.max(0, screenX / Math.max(width, 1)));
+  // Smooth ease: low on the left, lifts as it travels right
+  const rise = t * t * (3 - 2 * t); // smoothstep
+  const startY = height * 0.28; // bottom-left
+  const endY = -height * 0.22; // top-right
+  // Slight upward bulge in the middle of the arc
+  const bulge = Math.sin(t * Math.PI) * -height * 0.06;
+  return startY + (endY - startY) * rise + bulge;
+}
+
 function TechBall({
   name,
   icon,
   trackX,
+  pathHeight,
 }: {
   name: string;
   icon: string;
   trackX: MotionValue<number>;
+  pathHeight: number;
 }) {
   const itemRef = useRef<HTMLDivElement>(null);
   const baseCenter = useMotionValue(0);
@@ -34,7 +48,6 @@ function TechBall({
       const el = itemRef.current;
       if (!el) return;
       baseCenter.set(el.offsetLeft + el.offsetWidth / 2);
-      // tighter influence so only near-center balls lift
       setRadius(Math.min(220, Math.max(150, window.innerWidth * 0.18)));
     };
 
@@ -55,23 +68,24 @@ function TechBall({
       typeof window === "undefined" ? 0 : window.innerWidth / 2;
     const dist = (center as number) + (x as number) - screenCenter;
     const mag = dockMagnitude(dist, radius);
-    return 1 + mag * 0.28;
+    return 1 + mag * 0.32;
   });
 
   const y = useTransform([trackX, baseCenter], ([x, center]) => {
-    const screenCenter =
-      typeof window === "undefined" ? 0 : window.innerWidth / 2;
-    const dist = (center as number) + (x as number) - screenCenter;
+    const width = typeof window === "undefined" ? 1200 : window.innerWidth;
+    const screenX = (center as number) + (x as number);
+    const pathY = pathOffsetY(screenX, width, pathHeight);
+    const screenCenter = width / 2;
+    const dist = screenX - screenCenter;
     const mag = dockMagnitude(dist, radius);
-    return -mag * 22;
+    // Path arc + slight dock lift near center
+    return pathY - mag * 18;
   });
 
   const zIndex = useTransform([trackX, baseCenter], ([x, center]) => {
     const screenCenter =
       typeof window === "undefined" ? 0 : window.innerWidth / 2;
-    const dist = Math.abs(
-      (center as number) + (x as number) - screenCenter
-    );
+    const dist = Math.abs((center as number) + (x as number) - screenCenter);
     return Math.round(1000 - dist);
   });
 
@@ -118,6 +132,7 @@ export default function Tech() {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [travel, setTravel] = useState(0);
+  const [pathHeight, setPathHeight] = useState(420);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -138,6 +153,7 @@ export default function Tech() {
       if (!track) return;
       const overflow = track.scrollWidth - window.innerWidth;
       setTravel(Math.max(overflow, 0));
+      setPathHeight(Math.max(320, window.innerHeight * 0.48));
     };
 
     measure();
@@ -152,7 +168,6 @@ export default function Tech() {
     };
   }, []);
 
-  // Only as tall as needed: one viewport + horizontal travel distance
   const sectionHeight =
     travel > 0 ? `calc(100vh + ${Math.round(travel * 0.85)}px)` : "180vh";
 
@@ -169,12 +184,16 @@ export default function Tech() {
           <h2 className={styles.sectionHeadText}>Tech Explored.</h2>
         </div>
 
-        <div className="flex-1 flex flex-col justify-center min-h-0 pb-16">
-          <div className="h-[180px] sm:h-[200px] flex items-end">
+        <div className="relative flex-1 min-h-0">
+          {/* Tall path stage so the arc has room */}
+          <div
+            className="absolute inset-x-0 top-[8%] bottom-[18%] flex items-center"
+            style={{ minHeight: pathHeight }}
+          >
             <motion.div
               ref={trackRef}
               style={{ x }}
-              className="flex items-end gap-6 sm:gap-10 will-change-transform
+              className="flex items-center gap-6 sm:gap-10 will-change-transform w-max
                 pl-[calc(50vw-70px)] sm:pl-[calc(50vw-80px)]
                 pr-[calc(50vw-70px)] sm:pr-[calc(50vw-80px)]"
             >
@@ -184,13 +203,15 @@ export default function Tech() {
                   name={technology.name}
                   icon={technology.icon}
                   trackX={x}
+                  pathHeight={pathHeight}
                 />
               ))}
             </motion.div>
           </div>
 
-          <div className={`${styles.paddingX} max-w-7xl mx-auto w-full mt-8`}>
-            <div className="h-1 w-full max-w-xs rounded-full bg-white/10 overflow-hidden">
+          {/* Progress bar — bottom right */}
+          <div className="absolute bottom-8 right-6 sm:bottom-10 sm:right-10 md:right-16 z-10">
+            <div className="h-1.5 w-40 sm:w-56 rounded-full bg-white/10 overflow-hidden">
               <motion.div
                 className="h-full origin-left bg-[#915EFF]"
                 style={{ scaleX: smoothProgress }}
