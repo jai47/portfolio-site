@@ -7,6 +7,8 @@ import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Tech from "@/components/Tech";
 import Experience from "@/components/Experience";
+import Projects from "@/components/Projects";
+import Education from "@/components/Education";
 import Contact from "@/components/Contact";
 import SectionWrapper from "@/components/SectionWrapper";
 import { styles } from "@/constants";
@@ -59,6 +61,14 @@ export default function Home() {
 
       {/* Own section (no transform ancestor) so sticky horizontal scroll works */}
       <Tech />
+
+      <SectionWrapper idName="projects">
+        <Projects />
+      </SectionWrapper>
+
+      <SectionWrapper idName="education">
+        <Education />
+      </SectionWrapper>
 
       <div className="relative z-0">
         <section
