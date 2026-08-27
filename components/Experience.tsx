@@ -5,11 +5,20 @@ import { styles, experiences } from "@/constants";
 
 const SHRINK_MOBILE = 0.04;
 const SHRINK_DESKTOP = 0.055;
+const MOBILE_STACK_STEP = 14;
+
+function mobileNavOffset() {
+  if (typeof window === "undefined") return 80;
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue("--nav-sticky-offset")
+    .trim();
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : 80;
+}
 
 function stickyTopFor(index: number, isMobile: boolean) {
-  const base = isMobile ? 72 : 100;
-  const step = isMobile ? 14 : 22;
-  return base + index * step;
+  if (!isMobile) return 100 + index * 22;
+  return mobileNavOffset() + index * MOBILE_STACK_STEP;
 }
 
 function CardBody({
@@ -115,10 +124,12 @@ function ExperienceStack({ isMobile }: { isMobile: boolean }) {
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    window.addEventListener("nav-offset-change", onScroll);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      window.removeEventListener("nav-offset-change", onScroll);
     };
   }, [isMobile]);
 
@@ -130,8 +141,11 @@ function ExperienceStack({ isMobile }: { isMobile: boolean }) {
           data-exp-card
           className={`sticky last:mb-0 ${isMobile ? "mb-4" : "mb-6"}`}
           style={{
-            top: `${stickyTopFor(index, isMobile)}px`,
+            top: isMobile
+              ? `calc(var(--nav-sticky-offset, 80px) + ${index * MOBILE_STACK_STEP}px)`
+              : `${stickyTopFor(index, false)}px`,
             zIndex: index + 1,
+            transition: isMobile ? "top 0.3s ease-out" : undefined,
           }}
         >
           <article
@@ -173,7 +187,7 @@ export default function Experience() {
   }, []);
 
   return (
-    <section className="relative pb-8">
+    <section className="relative pb-8 scroll-mt-28">
       <div className="mb-6 sm:mb-8">
         <p className={styles.sectionSubText}>What I have done so far</p>
         <h2 className={styles.sectionHeadText}>Work Experience.</h2>

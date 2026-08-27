@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ASSETS, navLinks, styles } from "@/constants";
@@ -9,19 +9,72 @@ export default function Navbar() {
   const [active, setActive] = useState("");
   const [toggle, setToggle] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const lastY = useRef(0);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 100);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    lastY.current = window.scrollY;
+    let raf = 0;
+    let scheduled = false;
+
+    const onScroll = () => {
+      if (scheduled) return;
+      scheduled = true;
+      raf = requestAnimationFrame(() => {
+        scheduled = false;
+        const y = window.scrollY;
+        const isMobile = window.innerWidth < 640;
+        const delta = y - lastY.current;
+
+        setScrolled(y > 24);
+
+        if (!isMobile || toggle) {
+          setHidden(false);
+        } else if (y < 56) {
+          setHidden(false);
+        } else if (delta > 6) {
+          setHidden(true);
+          setToggle(false);
+        } else if (delta < -6) {
+          setHidden(false);
+        }
+
+        lastY.current = y;
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [toggle]);
+
+  useEffect(() => {
+    const isMobile = window.innerWidth < 640;
+    const offset = isMobile && hidden ? "12px" : "80px";
+    document.documentElement.style.setProperty("--nav-sticky-offset", offset);
+    window.dispatchEvent(new Event("nav-offset-change"));
+    return () => {
+      document.documentElement.style.removeProperty("--nav-sticky-offset");
+    };
+  }, [hidden]);
 
   return (
     <nav
-      className={`${styles.paddingX} w-full flex items-center py-5 fixed top-0 z-20 ${
-        scrolled ? "bg-primary" : "bg-transparent"
-      }`}
+      className={`${styles.paddingX} w-full flex items-center py-5 fixed top-0 z-20
+        transition-transform duration-300 ease-out
+        ${hidden ? "-translate-y-full pointer-events-none" : "translate-y-0"}`}
     >
+      {/* Animated backdrop — opacity fades instead of snapping bg color */}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 -z-10 bg-primary/95 backdrop-blur-md
+          shadow-[0_8px_30px_rgba(0,0,0,0.35)]
+          transition-opacity duration-300 ease-out
+          ${scrolled ? "opacity-100" : "opacity-0"}`}
+      />
+
       <div className="w-full flex justify-between items-center max-w-7xl mx-auto">
         <Link
           href="/"
@@ -95,7 +148,8 @@ export default function Navbar() {
               toggle ? "flex" : "hidden"
             } absolute top-[4.5rem] right-4 z-10 min-w-[180px] flex-col gap-1
               rounded-2xl border border-[#915EFF]/40 bg-[#151030] p-3
-              shadow-[0_20px_50px_rgba(5,8,22,0.75)]`}
+              shadow-[0_20px_50px_rgba(5,8,22,0.75)]
+              transition-opacity duration-200`}
           >
             <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-[#915EFF] to-transparent" />
             <ul className="list-none flex flex-col gap-1">

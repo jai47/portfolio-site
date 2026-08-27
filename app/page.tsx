@@ -49,7 +49,7 @@ export default function Home() {
 
       {/* Own section (no transform ancestor) so sticky card stacking works */}
       <section
-        className={`${styles.paddingX} pt-10 sm:pt-16 pb-4 max-w-7xl mx-auto relative z-0`}
+        className={`${styles.paddingX} pt-20 sm:pt-16 pb-4 max-w-7xl mx-auto relative z-0`}
       >
         <span className="hash-span" id="experience">
           &nbsp;
